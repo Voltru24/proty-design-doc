@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Proty — Гильдмастер-симулятор · Дизайн-документ</title>
+<style>
+  :root {
+    --parchment: #f0e5c9;
+    --parchment-dark: #e3d4ae;
+    --ink: #2c1d10;
+    --ink-soft: #5a3d22;
+    --accent: #8a1f1f;
+    --accent-soft: #b3572f;
+    --gold: #b8860b;
+    --bg: #1a120b;
+    --panel: rgba(30, 22, 14, 0.92);
+    --border: #6b4d2e;
+    --ok: #3d7a3a;
+    --warn: #a5741f;
+    --bad: #8a1f1f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--ink);
+    background:
+      radial-gradient(ellipse at top, #2a1c10, #171009 70%);
+    line-height: 1.55;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------- layout ---------- */
+  .shell { display: flex; min-height: 100vh; }
+
+  nav {
+    position: sticky; top: 0; align-self: flex-start;
+    width: 300px; min-width: 300px;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    height: 100vh; overflow-y: auto;
+    padding: 22px 14px;
+    color: var(--parchment);
+  }
+  nav h1 {
+    font-size: 19px; color: #f3dcae; line-height: 1.3;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  nav h1 small { display:block; font-size: 12px; color: #b39a77; font-weight: normal; margin-top: 4px; }
+  nav .group {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--gold); margin: 16px 0 6px;
+  }
+  nav a {
+    display: block; padding: 5px 8px; color: #d8c6a4;
+    font-size: 14px; border-left: 2px solid transparent;
+    border-radius: 3px;
+  }
+  nav a:hover { background: rgba(255,255,255,0.05); color: #fff; text-decoration: none; }
+  nav a.on { border-left-color: var(--accent); color: #fff; background: rgba(255,255,255,0.06); }
+
+  main {
+    flex: 1; padding: 40px 56px 120px;
+    max-width: 1080px;
+    background: var(--parchment);
+    background-image:
+      repeating-linear-gradient(0deg, rgba(140,110,60,0.05) 0 2px, transparent 2px 4px);
+  }
+
+  /* ---------- typography ---------- */
+  h2 {
+    font-size: 30px; color: var(--ink);
+    padding-bottom: 10px; margin: 56px 0 18px;
+    border-bottom: 3px double var(--accent);
+    scroll-margin-top: 24px;
+  }
+  h2:first-child { margin-top: 0; }
+  h3 { font-size: 21px; color: var(--accent-soft); margin: 30px 0 10px; }
+  h4 { font-size: 17px; color: var(--ink-soft); margin: 22px 0 8px; }
+  p { margin: 10px 0; }
+  ul, ol { margin: 8px 0 14px 26px; }
+  li { margin: 4px 0; }
+  strong { color: var(--accent); }
+  em { color: var(--ink-soft); }
+  blockquote {
+    margin: 14px 0; padding: 10px 16px;
+    background: rgba(140,110,60,0.14);
+    border-left: 4px solid var(--gold);
+    color: var(--ink-soft);
+  }
+
+  /* ---------- cards / meta ---------- */
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px;
+  }
+  .meta .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 12px;
+    background: var(--parchment-dark); border: 1px solid var(--border);
+    color: var(--ink);
+  }
+  .tag.status-mvp { background: #e7f0e0; border-color: var(--ok); color: #2c4a2a; }
+  .tag.status-future { background: #f6ebd8; border-color: var(--warn); color: #6b4d2e; }
+
+  .card {
+    background: rgba(255, 252, 242, 0.55);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px 20px; margin: 16px 0;
+  }
+  .pillars { display: flex; flex-direction: column; gap: 10px; }
+  .pillar {
+    display: flex; gap: 12px; align-items: baseline;
+    background: rgba(255,252,242,0.6); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 16px;
+  }
+  .pillar .n {
+    font-size: 22px; font-weight: bold; color: var(--accent); min-width: 30px;
+  }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 900px) { .two-col { grid-template-columns: 1fr; } }
+
+  /* ---------- tables ---------- */
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
+  caption { text-align: left; font-style: italic; color: var(--ink-soft); padding: 4px 0 8px; }
+  th {
+    background: var(--ink); color: var(--parchment);
+    text-align: left; padding: 8px 10px; font-size: 13px;
+    letter-spacing: 0.4px;
+  }
+  td { padding: 7px 10px; border-bottom: 1px solid rgba(90,61,34,0.28); vertical-align: top; }
+  tr:nth-child(even) td { background: rgba(140,110,60,0.08); }
+  td .mono, .mono {
+    font-family: Consolas, 'Courier New', monospace; font-size: 13px;
+    background: rgba(44,29,16,0.08); padding: 1px 5px; border-radius: 3px;
+  }
+
+  /* ---------- formulas ---------- */
+  .formula {
+    background: var(--ink); color: var(--parchment);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 16px 0;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 15px; overflow-x: auto;
+  }
+  .formula .cm { color: #b39a77; font-style: italic; }
+  .formula span { color: #f3c56b; }
+  .sym { color: #9bd1ff; }
+
+  /* ---------- code / mockups ---------- */
+  pre {
+    background: var(--ink); color: var(--parchment);
+    border-radius: 8px; padding: 16px 18px; margin: 16px 0;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px; line-height: 1.5; white-space: pre-wrap; overflow-x: auto;
+  }
+  .mockup {
+    background: #f7ecd2; border: 2px solid var(--border);
+    border-radius: 8px; padding: 14px 16px; margin: 16px 0;
+    font-family: Consolas, 'Courier New', monospace;
+    font-size: 13px; line-height: 1.5; color: var(--ink);
+    white-space: pre; overflow-x: auto;
+  }
+
+  /* ---------- misc ---------- */
+  .kbd {
+    font-family: Consolas, monospace; background: var(--ink); color: var(--parchment);
+    padding: 1px 6px; border-radius: 3px; font-size: 12px;
+  }
+  .grid-6 { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .client-card {
+    background: rgba(255,252,242,0.55); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 14px;
+  }
+  .client-card h5 { font-size: 15px; color: var(--accent); }
+  .client-card .role { font-size: 12px; color: #7a5a33; font-style: italic; }
+  .client-card p { font-size: 13px; margin: 6px 0; }
+  .client-card .theta {
+    display: inline-block; font-family: Consolas, monospace; font-size: 12px;
+    background: var(--parchment-dark); padding: 1px 6px; border-radius: 3px;
+  }
+  .toc-note { color: var(--ink-soft); font-size: 14px; font-style: italic; }
+  footer { margin-top: 60px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--ink-soft); font-size: 13px; }
+
+  @media (max-width: 860px) {
+    .shell { flex-direction: column; }
+    nav { width: 100%; min-width: 0; height: auto; position: static; }
+    main { padding: 24px 18px 80px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- ============================ SIDEBAR ============================ -->
+  <nav id="nav">
+    <h1>PROTY<small>Гильдмастер-симулятор · Дизайн-документ</small></h1>
+
+    <div class="group">Обзор</div>
+    <a href="#overview">1. Концепция и столпы</a>
+
+    <div class="group">Фаза 1 · Гильд-холл</div>
+    <a href="#loop">2. Цикл визита</a>
+    <a href="#clients">3. Клиенты</a>
+    <a href="#contract">4. Контракт</a>
+    <a href="#trading">5. Торг за награду</a>
+
+    <div class="group">Наёмники</div>
+    <a href="#mercs-classes">6. Классы наёмников</a>
+    <a href="#mercs-stats">7. Характеристики</a>
+    <a href="#backstories">8. Предыстории и навыки</a>
+    <a href="#traits">9. Черты характера</a>
+    <a href="#recruiting">10. Рекрутинг</a>
+    <a href="#death">11. Смерть и дебаффы</a>
+
+    <div class="group">Фаза 2 · Миссии</div>
+    <a href="#phase2">12. Планирование и выполнение</a>
+    <a href="#reputation">13. Репутация гильдии</a>
+
+    <div class="group">Визуал</div>
+    <a href="#visual">14. Визуальный стиль</a>
+    <a href="#visual-story-mercs">Сюжетные наёмники</a>
+    <a href="#visual-story-clients">Сюжетные клиенты</a>
+    <a href="#visual-random-clients">Рандомные клиенты</a>
+    <a href="#visual-random-mercs">Рандомные наёмники</a>
+  </nav>
+
+  <!-- ============================ CONTENT ============================ -->
+  <main>
+
+    <h2 id="overview">1. Концепция и столпы</h2>
+
+    <div class="meta">
+      <span class="tag">Godot 4.7.2 mono</span>
+      <span class="tag">GDScript</span>
+      <span class="tag">Mobile / tablet</span>
+      <span class="tag">Прототип</span>
+    </div>
+
+    <p><strong>Proty</strong> — симулятор гильдмастера. Игрок — глава гильдии наёмников.
+      Игра делится на две фазы:</p>
+
+    <div class="two-col">
+      <div class="card">
+        <h3>Фаза 1 — Гильд-холл</h3>
+        <p>Клиенты приходят, предлагают контракты. Игрок общается и
+          <strong>повышает награду с шансом</strong> или принимает/отклоняет заказ.</p>
+        <p>В начале приходит <strong>ровно 6 клиентов</strong>. Каждый контракт несёт атрибуты:
+          тип, срочность, длительность, цена, описание.</p>
+      </div>
+      <div class="card">
+        <h3>Фаза 2 — Планирование и выполнение</h3>
+        <p>Принятые контракты попадают в журнал. Игрок формирует <em>отряд из наёмников</em>
+          и отправляет на миссию. Исход — по вероятности, с риском травм и смерти.</p>
+        <p>Форма Фазы 2 — <em>предложение</em> (§12), детально уточняется.</p>
+      </div>
+    </div>
+
+    <h3>Столпы</h3>
+    <div class="pillars">
+      <div class="pillar"><span class="n">1</span>
+        <div><strong>Каждый клиент — личность.</strong> Своя история, отношение к гильдии,
+          характер переговоров. Уникальные реплики на согласие, отказ и угождение.</div>
+      </div>
+      <div class="pillar"><span class="n">2</span>
+        <div><strong>Награду надо выторговать.</strong> Рисковая механика «награда / шанс»,
+          а не фиксированная цена. Высокий запрос — высокий риск сорвать сделку.</div>
+      </div>
+      <div class="pillar"><span class="n">3</span>
+        <div><strong>Фаза 1 кормит Фазу 2.</strong> Принятые контракты и их параметры определяют
+          всю игровую глубину: кого отправлять, кем рисковать, кого беречь.</div>
+      </div>
+      <div class="pillar"><span class="n">4</span>
+        <div><strong>Риск читается заранее.</strong> Игрок видит шанс успеха, травм и смерти
+          <em>до отправки</em>, а не узнаёт после.</div>
+      </div>
+    </div>
+
+    <blockquote>
+      Эволюция: механика диалога/торга из предшествующего «диалог у лавки»
+      (dialogue-system.md) переиспользуется — но сеттинг меняется: игрок теперь
+      глава гильдии, а торг ведётся не за товары, а за <strong>награду контрактов</strong>.
+    </blockquote>
+
+    <!-- ============================ PHASE 1 ============================ -->
+
+    <h2 id="loop">2. Цикл визита (loop Фазы 1)</h2>
+
+    <p>Один визит — <strong>один персонаж</strong> из общего пула: клиент (контракт, Фаза 1)
+      или наёмник (предложение о найме, Фаза 2-кадры). Визит длится ~30–60 секунд.
+      Спектр результатов: от «клиент ушёл обиженным» до «контракт подписан с наградой +50%».</p>
+
+<pre>
+Клиент входит (со своей аркой-портретом)
+      │
+      ▼
+ПРИВЕТСТВИЕ: реплика клиента
+      ▼
+КОНТРАКТ: клиент выкладывает карту задания
+      │   [тип] [срочность] [длительность] [цена] [описание]
+      ▼
+ТОРГ: «Назвать свою цену» или «Взять как есть»
+      │   шаги повышения награды, каждый с шансом на успех
+      ▼
+РЕШЕНИЕ: принять / отклонить
+      │
+      ├─ принято → контракт в журнал → Фаза 2
+      └─ отклонено → trust −, клиент уходит (может вернуться позже)
+</pre>
+
+    <p>В Гильд-холле также способны прийти <strong>наёмники</strong> — карточка-кандидат с
+      кнопкой «Нанять» и торгом за долю награды. Пул визитёров общий — вероятность
+      «кто придёт» настраивается балансом (в коде: шанс наёмника 35%).</p>
+
+    <!-- ============================ CLIENTS ============================ -->
+
+    <h2 id="clients">3. Стартовые 6 клиентов</h2>
+
+    <p>Пустой пул становится активным: в первой «волне» приходит 6 клиентов.
+      Определяющий параметр переговоров — <span class="mono">Θ</span> (характер):
+      скупой 0.8 … щедрый/доверчивый 1.3.</p>
+
+    <table>
+      <caption>Имена и архетипы (черновик). pref_type: любимый тип контракта.</caption>
+      <tr><th>#</th><th>Имя</th><th>Роль клиента</th><th>Характер Θ</th>
+          <th>Тип</th><th>Trust</th></tr>
+      <tr><td>1</td><td><strong>Барон Август</strong></td><td>знать</td>
+          <td>0.8 — скупой, но платит при угождении</td><td>боевой</td><td>45</td></tr>
+      <tr><td>2</td><td><strong>Настоятель Лукас</strong></td><td>церковь</td>
+          <td>1.2 — честный, ценит результат</td><td>мирный</td><td>55</td></tr>
+      <tr><td>3</td><td><strong>Купчиха Марта</strong></td><td>торговля</td>
+          <td>1.0 — осторожная, уступает вежливости</td><td>любой</td><td>50</td></tr>
+      <tr><td>4</td><td><strong>Ведьма Ядвига</strong></td><td>тайны</td>
+          <td>1.1 — подозрительна, уважает остроумие</td><td>мирный</td><td>40</td></tr>
+      <tr><td>5</td><td><strong>Капитан Октом</strong></td><td>стража</td>
+          <td>0.95 — прямой, ценит скорость</td><td>боевой</td><td>50</td></tr>
+      <tr><td>6</td><td><strong>Староста Дан</strong></td><td>деревня</td>
+          <td>1.3 — беден, но часто приходит</td><td>мирный</td><td>40</td></tr>
+    </table>
+
+    <div class="grid-6">
+      <div class="client-card"><h5>Барон Август</h5><div class="role">знать</div>
+        <p>«Гильдмастер! Дело для сильных рук.»</p><span class="theta">Θ 0.8 · боевой</span></div>
+      <div class="client-card"><h5>Настоятель Лукас</h5><div class="role">церковь</div>
+        <p>«Мир вам. У братии есть скромная просьба.»</p><span class="theta">Θ 1.2 · мирный</span></div>
+      <div class="client-card"><h5>Купчиха Марта</h5><div class="role">торговля</div>
+        <p>«Хороший день для сделки, господин гильдмастер.»</p><span class="theta">Θ 1.0 · любой</span></div>
+      <div class="client-card"><h5>Ведьма Ядвига</h5><div class="role">тайны</div>
+        <p>«Тёмная эпоха, тёмные нужны. И кое-что тихое.»</p><span class="theta">Θ 1.1 · мирный</span></div>
+      <div class="client-card"><h5>Капитан Октом</h5><div class="role">стража</div>
+        <p>«Город спит неспокойно. Нужны штыки и смелость.»</p><span class="theta">Θ 0.95 · боевой</span></div>
+      <div class="client-card"><h5>Староста Дан</h5><div class="role">деревня</div>
+        <p>«Деревня в беде, гильдмастер… возьмись за малую цену.»</p><span class="theta">Θ 1.3 · мирный</span></div>
+    </div>
+
+    <p>Каждый клиент имеет: <span class="mono">trust</span> (0–100, старт ~40–50),
+      порог «сколько готов переплатить»
+      и уникальные реплики на согласие/отказ/угождение.</p>
+
+    <p><strong>Возврат клиентов:</strong> после сделки или отказа клиенты уходят, но появляются
+      снова (новые заказы, та же личность). Пул со временем пополняется новыми клиентами
+      (вне текущего скоупа, флаг на будущее).</p>
+
+    <!-- ============================ CONTRACT ============================ -->
+
+    <h2 id="contract">4. Задание (контракт): атрибуты</h2>
+
+    <table>
+      <tr><th>Атрибут</th><th>Тип</th><th>Описание и влияние</th></tr>
+      <tr><td><strong>Тип</strong></td><td>боевой / мирный</td>
+        <td>Каким героям доступен заказ в Фазе 2. Боевые: охрана, охота на чудовищ, сопровождение.
+          Мирные: доставка, поиск, исследование, ремесло. Боевые обычно дороже.</td></tr>
+      <tr><td><strong>Срочность</strong></td><td>low / normal / high / critical</td>
+        <td>Окно времени на принятие <em>и</em> выполнение. high/critical — бонус к стартовой цене
+          (+10…+30%) и податливость в торге, но штраф за отказ (−trust, −престиж).</td></tr>
+      <tr><td><strong>Длительность</strong></td><td>дни гильдии (волны)</td>
+        <td>Время занятости отряда. Длинные — больше награда, но блокируют отряд дольше.</td></tr>
+      <tr><td><strong>Цена</strong></td><td>int (базовая награда)</td>
+        <td>Базовые монеты. Потолок стартового предложения, от него считается торг.</td></tr>
+      <tr><td><strong>Описание</strong></td><td>текст</td>
+        <td>Сюжет + скрытые намёки (реальный противник, секрет, риск).</td></tr>
+    </table>
+
+    <div class="mockup">─────────────────────────────────────────────
+ КОНТРАКТ  ·  Барон Август
+─────────────────────────────────────────────
+ ТИП      : БОЕВОЙ
+ СРОЧНОСТЬ: ВЫСОКАЯ   (выполнить в ближайшие 2 дня)
+ ДЛИТ-ТЬ  : 2 дня
+ ЦЕНА     : 40 монет
+─────────────────────────────────────────────
+ «В соседнем лесу завёлся волк-оборотень, режет
+  скот. Барон требует разобраться до ярмарки…»
+─────────────────────────────────────────────</div>
+
+    <table>
+      <caption>Множители срочности (код game_state.gd)</caption>
+      <tr><th>Срочность</th><th>URGENCY (цена) U</th><th>Дедлайн, волн</th><th>Метка</th>
+          <th>Множитель риска в миссиях</th></tr>
+      <tr><td>low</td><td class="mono">1.00</td><td>6</td><td>НЕ СПЕШНО</td><td class="mono">0.7</td></tr>
+      <tr><td>normal</td><td class="mono">1.05</td><td>4</td><td>ОБЫЧНАЯ</td><td class="mono">1.0</td></tr>
+      <tr><td>high</td><td class="mono">1.15</td><td>3</td><td>СРОЧНО</td><td class="mono">1.3</td></tr>
+      <tr><td>critical</td><td class="mono">1.30</td><td>2</td><td>КРИТИЧНО</td><td class="mono">1.6</td></tr>
+    </table>
+
+    <p><strong>Пулы контрактов</strong> (в коде): боевые — «Оборотень у деревни», «Охрана каравана»,
+      «Разбойники на тракте», «Бешеный вепрь»; мирные — «Доставка письма», «Сбор трав»,
+      «Исследование руин», «Груз для деревни». Базовая цена: боевой 30–55, мирный 15–35,
+      умножается на URGENCY.</p>
+
+    <!-- ============================ TRADING ============================ -->
+
+    <h2 id="trading">5. Торг за награду: «повысить цену с шансом»</h2>
+
+    <p>Игрок видит базовую цену <span class="mono">P_base</span>. Можно повышать награду шагами
+      (+10% → +50% от базы) либо взять как есть. Каждый шаг — риск.</p>
+
+    <div class="formula">
+p = <span class="sym">clamp</span>( (Trust/100) × Θ_client × Urg × (P_base / P_offer)<sup>k</sup> , 0.03, 0.97 )</div>
+
+    <ul>
+      <li><strong>Trust</strong> — отношение клиента (0–100).</li>
+      <li><strong>Θ_client</strong> — характер: скупой 0.8 … доверчивый 1.3.</li>
+      <li><strong>Urg</strong> — бонус срочности: low 1.0, normal 1.05, high 1.15, critical 1.3.</li>
+      <li><strong>k</strong> — крутизна ~1.6; если Trust ≥ 70 → 1.3 (мягче).</li>
+      <li><strong>P_offer / P_base</strong> — переплата: чем больше просишь сверх базы, тем ниже шанс.</li>
+    </ul>
+
+    <table>
+      <caption>Ощущение «честности» (целевые, у нейтрального клиента)</caption>
+      <tr><th>Шаг</th><th>p (примерно)</th></tr>
+      <tr><td>+10%</td><td>≈ 0.7–0.9</td></tr>
+      <tr><td>+30%</td><td>≈ 0.4–0.6</td></tr>
+      <tr><td>+50%</td><td>≈ 0.15–0.3</td></tr>
+    </table>
+
+    <h3>Результаты шага</h3>
+    <ul>
+      <li><strong>Успех</strong> — цена зафиксирована выше. Награда растёт → больше монет в Фазе 2.</li>
+      <li><strong>Провал</strong> — <span class="mono">Trust −15</span>, клиент раздражается:
+        либо уходит без сделки, либо (60%) перепредлагает по базе «как единственный вариант».
+        Если Trust стал ≤ 0 — клиент уходит в ярости.</li>
+      <li>Повторять шаги можно, но каждый следующий — риск испортить всё.</li>
+    </ul>
+
+    <p><strong>Связь с Фазой 2:</strong> цена не меняет сложность контракта, но меняет ожидания
+      клиента: «переплаченный» контракт при провале даёт двойной минус репутации.</p>
+
+    <!-- ============================ MERCS ============================ -->
+
+    <h2 id="mercs-classes">6. Классы наёмников</h2>
+
+    <p>Кадровый ресурс гильдии. Два класса с разным риск-профилем, чтобы каждый визит в Фазу 2
+      был взвешенным решением: кого послать, кому отдыхать, где грань между риском и наградой.</p>
+
+    <table>
+      <tr><th></th><th>Рандомные (случайные)</th><th>Сюжетные</th></tr>
+      <tr><td>Источник</td><td>приходят как самостоятельные визитёры в гильд-холл</td>
+          <td>события, квесты, новости</td></tr>
+      <tr><td>Создание</td><td>процедурная генерация</td><td>рукописные персонажи</td></tr>
+      <tr><td>Стоимость найма</td><td>низкая/средняя</td><td>высокая или через цепочку условий</td></tr>
+      <tr><td>Сила</td><td>базовая, средняя</td><td>выше среднего + уникальные черты</td></tr>
+      <tr><td>Смерть на боевом</td><td class="mono" style="color:var(--bad)"><strong>ДА</strong></td>
+          <td class="mono" style="color:var(--ok)"><strong>НЕТ (никогда)</strong></td></tr>
+      <tr><td>Дебаффы</td><td>да</td><td>да («механика не щадит»)</td></tr>
+      <tr><td>Замена</td><td>легко (новый из пула)</td><td>нет — только «выгорание»</td></tr>
+      <tr><td>Сюжетная роль</td><td>нет</td><td>личные арки, диалоги, секреты</td></tr>
+    </table>
+
+    <blockquote><strong>Ключевое правило:</strong> смерть возможна только на боевом задании
+      и только у рандомных. Сюжетным исхода «смерть» не существует: при провале они получают
+      дебафф и/или сюжетное последствие.</blockquote>
+
+    <!-- ============================ STATS ============================ -->
+
+    <h2 id="mercs-stats">7. Характеристики</h2>
+
+    <p>Базовая карточка наёмника: имя/портрет, роль (боец / целитель / следопыт / маг),
+      уровень (1–10 в MVP — потолок статов), 6 основных характеристик, 1–3 доп-навыка,
+      черта характера, занятость, состояние здоровья.</p>
+
+    <table>
+      <caption>6 основных характеристик: 3 боевых + 3 мирных. Диапазон 1–10.</caption>
+      <tr><th>Группа</th><th>Характеристика</th><th>Влияет на</th></tr>
+      <tr><td>Боевые</td><td><strong>Сила</strong></td><td>урон, броня, физическая работа</td></tr>
+      <tr><td>Боевые</td><td><strong>Ловкость</strong></td><td>уклонение, точность, ловушки, скрытность</td></tr>
+      <tr><td>Боевые</td><td><strong>Выносливость</strong></td><td>здоровье, устойчивость к травмам/дебаффам</td></tr>
+      <tr><td>Мирные</td><td><strong>Интеллект</strong></td><td>магия, исследования, знание</td></tr>
+      <tr><td>Мирные</td><td><strong>Мудрость</strong></td><td>наблюдательность, лечение, выход из трудностей</td></tr>
+      <tr><td>Мирные</td><td><strong>Обаяние</strong></td><td>переговоры, клиенты (Фаза 1), командный дух</td></tr>
+    </table>
+
+    <p><strong>Бюджет статов:</strong> у рандомных суммарный бюджет фиксирован
+      (<span class="mono">15 + уровень×3</span> очков, распределяются по весам роли) —
+      сильные в бою слабеют в мирном и наоборот, читаемый трейд-офф.</p>
+
+    <table>
+      <caption>Веса ролей (ROLE_WEIGHTS в коде)</caption>
+      <tr><th>Роль</th><th>str</th><th>dex</th><th>end</th><th>int</th><th>wis</th><th>cha</th><th>Отлично на</th></tr>
+      <tr><td>БОЕЦ</td><td>5</td><td>3</td><td>4</td><td>1</td><td>1</td><td>1</td><td>боевых</td></tr>
+      <tr><td>ЦЕЛИТЕЛЬ</td><td>2</td><td>2</td><td>3</td><td>3</td><td>5</td><td>2</td><td>мирных, лечение</td></tr>
+      <tr><td>СЛЕДОПЫТ</td><td>3</td><td>5</td><td>3</td><td>2</td><td>3</td><td>1</td><td>оба, скрытность</td></tr>
+      <tr><td>МАГ</td><td>1</td><td>2</td><td>2</td><td>5</td><td>3</td><td>3</td><td>мирных, магия</td></tr>
+    </table>
+
+    <h4>Сила отряда (SquadPower)</h4>
+    <div class="formula">SquadPower = Σ (боевые статы по роли + уровень×10 + мирные статы/2 + бонусы навыков)
+<span class="cm"># с учётом дебаффов и черт характера</span></div>
+
+    <h4>Пригодность наёмника (fit, 0..1)</h4>
+    <div class="formula">base = 0.35 + статы по типу + бонус роли + бонус навыков + бонус черты
+<span class="cm"># боевой тип: str·0.10 + dex·0.06 + end·0.06 + lvl·0.04; роли: БОЕЦ +0.25, СЛЕДОПЫТ +0.12…</span>
+<span class="cm"># мирный тип: int·0.08 + wis·0.08 + cha·0.06 + lvl·0.03; роли: МАГ +0.2, ЦЕЛИТЕЛЬ +0.15…</span>
+fit = <span class="sym">clamp</span>(base × Π дебаффов, 0.05, 1.0)</div>
+
+    <!-- ============================ BACKSTORIES ============================ -->
+
+    <h2 id="backstories">8. Предыстории (источник доп-навыков)</h2>
+
+    <p>У каждого наёмника (и клиента — для глубины) есть предыстория. Она задаёт: вводную фразу
+      и список кандидатов на доп-навыки. Генерация рандомного:
+      предыстория → 1–3 навыка из её списка → черта → статы по бюджету группы.</p>
+
+    <table>
+      <tr><th>Предыстория</th><th>Всегда/часто даёт</th><th>Может дать</th></tr>
+      <tr><td>Крестьянин</td><td>ремесло, кулинария</td><td>верховая езда, ловкость рук</td></tr>
+      <tr><td>Писарь / писарка</td><td>письменность, картография</td><td>красноречие, знание законов</td></tr>
+      <tr><td>Знахарь</td><td>травничество, зельеварение</td><td>леч-навык</td></tr>
+      <tr><td>Бывший стражник</td><td>слежка, строй</td><td>ремесло, знание города</td></tr>
+      <tr><td>Торговец</td><td>красноречие, письменность</td><td>картография, оценка</td></tr>
+      <tr><td>Странник</td><td>картография, слежка</td><td>кулинария, верховая езда</td></tr>
+    </table>
+
+    <h4>Бонусы навыков (SKILL_BONUS в коде, добавка к fit)</h4>
+    <table>
+      <tr><th>Навык</th><th>Боевые</th><th>Мирные</th></tr>
+      <tr><td>письменность, картография, травничество, зельеварение</td><td>—</td><td class="mono">+0.05</td></tr>
+      <tr><td>красноречие</td><td>—</td><td class="mono">+0.04</td></tr>
+      <tr><td>ремесло</td><td class="mono">+0.03</td><td class="mono">+0.03</td></tr>
+      <tr><td>слежка</td><td class="mono">+0.05</td><td>—</td></tr>
+      <tr><td>верховая езда</td><td class="mono">+0.02</td><td>—</td></tr>
+      <tr><td>кулинария</td><td colspan="2">особые события</td></tr>
+    </table>
+
+    <!-- ============================ TRAITS ============================ -->
+
+    <h2 id="traits">9. Черты характера (влияют на поведение)</h2>
+
+    <p>Черта видна на карточке (⚠), но <strong>не все её эффекты раскрыты</strong> — некоторые
+      проявляются первый раз в миссии (сообщение-событие: «Трус не выступил, похоже, он в кустах»).
+      Сюжетные черты уникальны и связаны с их арками.</p>
+
+    <table>
+      <tr><th>Черта</th><th>Эффект на поведение</th></tr>
+      <tr><td>Смельчак</td><td>сам напрашивается на боевые; +fit в бою (<span class="mono">+0.1</span>)</td></tr>
+      <tr><td>Трусливый</td><td>отказывается от боевых при риске смерти &gt; 15%; шанс «слинять» из миссии</td></tr>
+      <tr><td>Жадный</td><td>требует бóльшую долю награды; при высокой цене лояльнее</td></tr>
+      <tr><td>Верный</td><td>не подведёт; +командный дух, не уходит после дебаффов</td></tr>
+      <tr><td>Гордец / Упрямый</td><td>может отказаться от приказа (смена задания в холле)</td></tr>
+      <tr><td>Общительный</td><td>+синергия в отряде, лучше в мирных «клиентских» миссиях</td></tr>
+      <tr><td>Подозрительный</td><td>−синергия с незнакомцами, но +надёжность против ловушек/обмана</td></tr>
+      <tr><td>Ленивый</td><td>быстро накапливает Усталость, чаще копится Деморализация</td></tr>
+    </table>
+
+    <!-- ============================ RECRUITING ============================ -->
+
+    <h2 id="recruiting">10. Рекрутинг</h2>
+
+    <h3>Рандомный пул (визитёры гильд-холла)</h3>
+    <ul>
+      <li>Визитёр из общего пула — <strong>либо клиент, либо наёмник</strong>. Один заход = один персонаж.</li>
+      <li>Клиент-визитёр несёт контракт; наёмник-визитёр — предложение о найме.</li>
+      <li>Наёмник виден как карточка-кандидат: роль, статы, черта, цена / доля + фраза-самопрезентация.</li>
+      <li>Найм прямо в гильд-холле: кнопка «Нанять». Не нанял — визитёр уходит, новые придут с новыми заходами.</li>
+      <li>Вероятность «визит = наёмник» настраивается балансом (в коде <span class="mono">0.35</span>).</li>
+      <li>Наём — за долю от награды заказов (в коде: стартовая доля 25–35%, генерация
+        <span class="mono">25 + уровень²·5</span>…; торг −5% с шансом, порог share_min).</li>
+    </ul>
+
+    <h3>Сюжетные</h3>
+    <ul>
+      <li>Появляются через события: контракты особого типа, новости, цепочки 2–3 условий
+        (репутация, личный контракт, диалог).</li>
+      <li>1 сюжетный = «буфер безопасности» гильдии: никогда не потеряешь его.</li>
+    </ul>
+
+    <!-- ============================ DEATH ============================ -->
+
+    <h2 id="death">11. Смерть и дебаффы</h2>
+
+    <h3>Что даёт боевое задание</h3>
+    <p>Риск исхода разбит на два этапа (до отправки игрок видит оба числа):</p>
+    <ol>
+      <li><strong>Шанс общего провала</strong> — контракт не выполнен (§12).</li>
+      <li><strong>Шанс потерь</strong> внутри отряда на боевом — даже при успехе возможен вред:</li>
+    </ol>
+
+    <div class="formula">
+death_chance(i)  = <span class="sym">clamp</span>( 0.02 · (1 − fit<sub>i</sub>²) · U · RiskLevel , 0.005, 0.30 )
+injury_chance(i) = <span class="sym">clamp</span>( 0.15 · (1 − fit<sub>i</sub>²) · U , 0.02, 0.60 )</div>
+
+    <ul>
+      <li><strong>fit_i</strong> — пригодность наёмника к заданию (0…1).</li>
+      <li><strong>U</strong> — множитель срочности (low 0.7 … critical 1.6).</li>
+      <li><strong>RiskLevel</strong> — скрытая сложность контракта (0.5 лёгкий … 1.5 хардкор).</li>
+    </ul>
+
+    <p><strong>Порядок:</strong> сначала roll injury у каждого → потом roll death только у тех,
+      кого не спасла Выносливость/черты. Мирные задания: <span class="mono">death_chance = 0</span>.
+      У сюжетных death-roll роляется с множителем 0.5 и превращается в «выбывание» (никогда не смерть).</p>
+
+    <h3>Рандомные</h3>
+    <ul>
+      <li>При смерти: наёмник удаляется из состава. Гильд-холл показывает причину,
+        репутация −5 (родня/город), возможен разовый контракт-событие «письмо вдове».</li>
+      <li>Каждая боевая миссия обязана показывать текущий расчёт <span class="mono">fit</span>
+        худшего наёмника в карточке миссии.</li>
+    </ul>
+
+    <h3>Сюжетные</h3>
+    <ul>
+      <li><strong>Никогда не умирают.</strong> Попадание смерти → конвертируется в <strong>тяжёлый
+        дебафф</strong> + сюжетное последствие: недоступен 2–3 дня, разговор в холле, персональный
+        контракт «лечение / отмщение».</li>
+    </ul>
+
+    <h3>Дебаффы</h3>
+    <table>
+      <tr><th>Дебафф</th><th>Эффект</th><th>Спадает</th><th>Множитель (код)</th></tr>
+      <tr><td>Травма (лёгкая)</td><td>−20% статов</td><td>лечение 2 дня</td><td class="mono">0.80</td></tr>
+      <tr><td>Травма (тяжёлая)</td><td>−40% статов, нельзя на боевое</td><td>лечение 5 дней / целитель</td><td class="mono">0.60</td></tr>
+      <tr><td>Усталость</td><td>−15% статов</td><td>отдых 1 день</td><td class="mono">0.85</td></tr>
+      <tr><td>Деморализация</td><td>−10% и шанс отказаться от боевого</td><td>успешная миссия / пир</td><td class="mono">0.90</td></tr>
+      <tr><td>Проклятие</td><td>−30% надолго, подрывает навыки/черты</td><td>квест «снять проклятие»</td><td class="mono">—</td></tr>
+      <tr><td>Выбывание (сюжетн.)</td><td>недоступен 2–3 дня</td><td>время / личный контракт</td><td class="mono">0.50</td></tr>
+    </table>
+
+    <blockquote><strong>Баланс:</strong> дебаффы — главный «износ» сюжетных; даже идеальная команда
+      периодически нуждается в ротации.</blockquote>
+
+    <!-- ============================ PHASE 2 ============================ -->
+
+    <h2 id="phase2">12. Фаза 2 — «Планирование и выполнение»</h2>
+
+    <div class="meta"><span class="tag status-mvp">Реализовано (базово)</span>
+      <span class="tag status-future">Развивается</span></div>
+
+    <p>Черновик-предложение, требующее уточнения формы у владельца проекта.
+      В прототипе уже работает следующий цикл:</p>
+
+    <ol>
+      <li>Контракты из Фазы 1 попадают в <strong>журнал гильдии</strong>.</li>
+      <li>Игрок формирует <strong>отряд из нанятых героев</strong> (роли: боец/целитель/следопыт/маг;
+        пригодность к боевым/мирным).</li>
+      <li><span class="mono">Длительность</span> = время занятости отряда (в волнах);
+        <span class="mono">Тип</span> фильтрует, кто может идти; срочность задаёт дедлайн.</li>
+      <li><strong>Исход по вероятности:</strong> пригодность отряда vs сложность контракта
+        (скрытая, читаемая по описанию) + случайность.</li>
+      <li>Успех → награда (с учётом выторгованной цены), опыт, +Rep.
+        Провал → штраф репутации; «переплата» — удвоенный штраф.</li>
+    </ol>
+
+    <h3>Формула успеха (в коде)</h3>
+    <div class="formula">diff = боевой: 30 + дедлайн×5   ·   мирный: 18 + дедлайн×3
+power = Σ squad_rating(m)
+p_success = <span class="sym">clamp</span>( 0.15 + 0.75 · (power / diff) , 0.05 , 0.95 )</div>
+
+    <h3>Трусливый</h3>
+    <p>Трусливый наёмник блокирует отправку на боевое задание, если его шанс смерти &gt; 15%.</p>
+    <div class="formula">dc(coward) = 0.02 · (1 − fit²) · U · risk ;  risk = clamp(diff / 40, 0.5, 1.6)</div>
+
+    <blockquote><strong>Открытый вопрос:</strong> управляем ли мы героями (найм, прокачка) или
+      Фаза 2 — «казуальный таймер» (клик «отправить» и результат)? Это определит весь скоуп.</blockquote>
+
+    <!-- ============================ REPUTATION ============================ -->
+
+    <h2 id="reputation">13. Репутация гильдии</h2>
+
+    <p>Глобальная <span class="mono">Rep: −100 … +100</span>. Старт 0.</p>
+
+    <table>
+      <tr><th>Событие</th><th>Δ Rep</th></tr>
+      <tr><td>Успешный контракт (честная цена)</td><td>+3 … +8</td></tr>
+      <tr><td>Провал контракта</td><td class="mono" style="color:var(--bad)">−15</td></tr>
+      <tr><td>Провал «переплаченного» контракта</td><td class="mono" style="color:var(--bad)">−30 (двойной)</td></tr>
+      <tr><td>Отказ без объяснения</td><td class="mono" style="color:var(--bad)">−5</td></tr>
+      <tr><td>Хамство</td><td class="mono" style="color:var(--bad)">−8</td></tr>
+      <tr><td>Смерть наёмника</td><td class="mono" style="color:var(--bad)">−5 × deaths</td></tr>
+      <tr><td>Срыв контракта (не вышли в срок)</td><td class="mono" style="color:var(--bad)">−5</td></tr>
+    </table>
+
+    <p><strong>Фильтр пула:</strong> высокий Rep → Барон/Ведьма чаще, щедрые заказы;
+      низкий → только Староста и desperate-контракты (петля ухудшения).</p>
+
+    <!-- ============================ VISUAL ============================ -->
+
+    <h2 id="visual">14. Визуальный стиль</h2>
+
+    <p>Единый арт-направление для всех персонажей: <strong>тёмное европейское средневековье /
+      сумеречная фэнтези</strong>, тёплая «пергаментная» палитра (соответствует сцене Гильд-холла).
+      Фигуры — поясные портреты с читаемым силуэтом и характерным реквизитом; фон простой,
+      чтобы персонаж легко читался на карточке и у прилавка.</p>
+
+    <table>
+      <tr><th>Параметр</th><th>Правило</th></tr>
+      <tr><td>Стиль</td><td>пиксель-арт / стилизованный HD (в духе 16-бит), чёткий контур</td></tr>
+      <tr><td>Палитра</td><td>тёплые камни и дерево, грязно-золотой, алый акцент; холод лишь у Ведьмы и ночных сцен</td></tr>
+      <tr><td>Силуэт</td><td>уникальный per-персонаж: барону — мех и широта, ведьме — капюшон и острота</td></tr>
+      <tr><td>Поза/экспрессия</td><td>отражает черту характера (важно для «личности») + эмоция от реплик клиента</td></tr>
+      <tr><td>Масштаб</td><td>портрет ~64×64 (иконка) + поясной кадр визитёра (примерно 256×280 на карточке)</td></tr>
+      <tr><td>Роли-подсказки</td><td>обилие деталей не обязательно: читается 1–2 ярких элемента + цвет фона роли</td></tr>
+    </table>
+
+    <h3 id="visual-story-clients">Сюжетные клиенты</h3>
+
+    <p>Главные «лица» Фазы 1: каждый персонаж должен узнаваться с первого взгляда.</p>
+
+    <div class="grid-6">
+      <div class="client-card"><h5>Барон Август</h5><div class="role">знать</div>
+        <p><em>Силуэт:</em> широкий, тяжёлый плащ с меховой накидкой.</p>
+        <p><em>Цвет:</em> тёмно-красное сукно, золотая цепь, седина.</p>
+        <p><em>Реквизит:</em> перстень с печатью, трость-скипетр.</p>
+        <p><em>Выражение:</em> надменное, оценивающее.</p></div>
+      <div class="client-card"><h5>Настоятель Лукас</h5><div class="role">церковь</div>
+        <p><em>Силуэт:</em> высокая прямая фигура, длинный балахон, тонзура.</p>
+        <p><em>Цвет:</em> тёплый серо-коричневый, пояс-вервие, деревянный крест.</p>
+        <p><em>Реквизит:</em> свиток в руках, канделябр.</p>
+        <p><em>Выражение:</em> спокойное, открытое.</p></div>
+      <div class="client-card"><h5>Купчиха Марта</h5><div class="role">торговля</div>
+        <p><em>Силуэт:</em> плотная фигура, плащ с капюшоном на меховой подкладке.</p>
+        <p><em>Цвет:</em> тёплый янтарный, шерсть и сукно, янтарные бусы.</p>
+        <p><em>Реквизит:</em> свёрток с документами, весы.</p>
+        <p><em>Выражение:</em> лукавое.</p></div>
+      <div class="client-card"><h5>Ведьма Ядвига</h5><div class="role">тайны</div>
+        <p><em>Силуэт:</em> узкая фигура под глубоким серым капюшоном, лицо скрыто.</p>
+        <p><em>Цвет:</em> пепельно-серый со стальным отливом, холодный акцент.</p>
+        <p><em>Реквизит:</em> сушёные травы, костяная игла, свеча.</p>
+        <p><em>Выражение:</em> прищур, лёгкая усмешка.</p></div>
+      <div class="client-card"><h5>Капитан Октом</h5><div class="role">стража</div>
+        <p><em>Силуэт:</em> кряжистый, латная кираса поверх кольчуги, шрам.</p>
+        <p><em>Цвет:</em> тусклая сталь, красный плащ.</p>
+        <p><em>Реквизит:</em> рукоять меча, городской герб на щите.</p>
+        <p><em>Выражение:</em> прямой взгляд.</p></div>
+      <div class="client-card"><h5>Староста Дан</h5><div class="role">деревня</div>
+        <p><em>Силуэт:</em> ссутуленный, грубая холщовая одежда, соломенная шляпа.</p>
+        <p><em>Цвет:</em> выцветшая охра и лён, заплаты.</p>
+        <p><em>Реквизит:</em> посох, узелок.</p>
+        <p><em>Выражение:</em> усталое, просящее.</p></div>
+    </div>
+
+    <h3 id="visual-story-mercs">Сюжетные наёмники</h3>
+
+    <p>Визуально — заметно «дороже» рандомных: уникальные детали, собственная палитра,
+      личная эмблема.</p>
+
+    <div class="card">
+      <h4>Мария — описание</h4>
+      <p>Красноволосая мечница. Облачена в полный кожаный доспех с металлическими
+        наколенниками, рукавицами и надплечниками. Глаза берёзовые, в них читается холод.</p>
+      <h4>Концепты</h4>
+      <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:flex-start;">
+        <a href="Maria1.png" target="_blank" title="Открыть концепт 1">
+          <img src="Maria1.png" alt="Концепт Марии 1 — рыжая мечница в кожаном доспехе"
+               style="max-width:280px; border:2px solid var(--border); border-radius:8px;"></a>
+        <a href="Maria2.jfif" target="_blank" title="Открыть концепт 2">
+          <img src="Maria2.jfif" alt="Концепт Марии 2 — рыжая мечница в кожаном доспехе"
+               style="max-width:280px; border:2px solid var(--border); border-radius:8px;"></a>
+      </div>
+    </div>
+
+    <h3 id="visual-random-mercs">Рандомные наёмники</h3>
+
+    <p>Визуал собирается из блоков: роль → силуэт и оружие, предыстория → одежда и аксессуары,
+      черта → мимика и поза. Планируется галерея вариаций по ролям и предысториям.</p>
+
+    <table>
+      <tr><th>Слот</th><th>Донат вариантов (черновик)</th><th>Визуальный результат</th></tr>
+      <tr><td>Роль</td>
+        <td>БОЕЦ · ЦЕЛИТЕЛЬ · СЛЕДОПЫТ · МАГ</td>
+        <td>силуэт + оружие: табард/щит · сумка-зелья/посох · плащ/лук · роба/посох-жезл</td></tr>
+      <tr><td>Предыстория</td>
+        <td>крестьянин · писарь · знахарь · стражник · торговец · странник</td>
+        <td>одежда и аксессуары: косы/фартук · грифель/чернильница · мешок трав · кираса/кепка · весы/кошель · дорожный плащ/карта</td></tr>
+      <tr><td>Черта</td>
+        <td>смельчак · трусливый · жадный · верный · упрямый · общительный · подозрительный · ленивый</td>
+        <td>мимика/поза: выпяченная грудь · прячется · жадный блеск в глазах · твёрдая стойка · скрещённые руки · открытая улыбка · прищур · зевок</td></tr>
+      <tr><td>Уровень</td>
+        <td>—</td>
+        <td>богатство брони/аксессуаров растёт с уровнем</td></tr>
+    </table>
+
+    <div class="card">
+      <h4>Генерация портрета (пайплайн предложение)</h4>
+      <p>Собирать образ вручную или «эскиз-комбо»: роль задаёт силуэт → предыстория донатит
+        реквизит → черта правит экспрессию → имя печатается в подпись. Каждый слот визуально
+        независим.</p>
+      <p><strong>Совет для арта:</strong> у рандомных держать узнаваемость на 2–3 деталях.</p>
+    </div>
+
+    <h3 id="visual-random-clients">Рандомные клиенты</h3>
+
+    <p>Визуальный принцип — вариации на темы «поселенец/ремесленник/мастер» с читаемой ролью
+      (кто он заказчик). Уровень редкости подсказан качеством одежды.</p>
+
+    <table>
+      <tr><th>Тема заказчика</th><th>Роль-визуал</th><th>Тип</th></tr>
+      <tr><td>Ремесленник</td><td>кожаный фартук, инструмент (молот/нельней/наковальня)</td><td>мирный / боевой</td></tr>
+      <tr><td>Торговец ярмарки</td><td>пёстрый плащ, товарный ящик, весы, улыбчивый</td><td>любой</td></tr>
+      <tr><td>Странствующий рыцарь/маг</td><td>запылённая кираса или шляпа с пером, свиток</td><td>боевой / мирный</td></tr>
+      <tr><td>Городской чиновник</td><td>привозной бархат, печать, свиток, самоуверенная поза</td><td>мирный</td></tr>
+      <tr><td>Крестьянин (паника)</td><td>обтёрханный, грязный, растерянный — требования низкие (desperate)</td><td>мирный</td></tr>
+    </table>
+
+    <div class="card">
+      <h4>Правило визуала рандомных клиентов</h4>
+      <p>Роль заказчика всегда считывается за секунду (1 деталь на груди/в руках). Качество
+        персонажа отражается на одежде: бедный пул — выцветшие лохмотья, богатый пул — сукно,
+        мех, золото.</p>
+    </div>
+
+    <footer>
+      Proty · Гильдмастер-симулятор · Дизайн-документ. Дата: 2026-09-16.
+    </footer>
+  </main>
+</div>
+
+</body>
+</html>
